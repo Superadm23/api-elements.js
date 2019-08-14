@@ -23,11 +23,19 @@ const {
 // the input Swagger into Refract elements. The `parse` function is its main
 // interface.
 class Parser {
-  constructor({ namespace, source, generateSourceMap }) {
+  constructor({
+    namespace, source, generateSourceMap, generateMessageBody,
+  }) {
     // Parser options
     this.namespace = namespace;
     this.source = source;
     this.generateSourceMap = generateSourceMap;
+
+    if (generateMessageBody === undefined) {
+      this.generateMessageBody = true;
+    } else {
+      this.generateMessageBody = generateMessageBody;
+    }
 
     // Global scheme requirements
     this.globalSchemes = [];
@@ -1051,9 +1059,11 @@ class Parser {
       pushHeader('Content-Type', FORM_CONTENT_TYPE, request, this, 'form-data-content-type');
     }
 
-    const jsonSchema = convertSchema(schema, { definitions: this.definitions },
-      this.referencedSwagger);
-    bodyFromSchema(jsonSchema, request, this, contentType || FORM_CONTENT_TYPE);
+    if (this.generateMessageBody) {
+      const jsonSchema = convertSchema(schema, { definitions: this.definitions },
+        this.referencedSwagger);
+      bodyFromSchema(jsonSchema, request, this, contentType || FORM_CONTENT_TYPE);
+    }
 
     // Generating data structure
     const dataStructure = new DataStructure();
@@ -1541,7 +1551,7 @@ class Parser {
       return;
     }
 
-    if (pushBody) {
+    if (pushBody && this.generateMessageBody) {
       bodyFromSchema(jsonSchema, payload, this, contentType);
     }
 
