@@ -5,8 +5,8 @@
 ### Enhancements
 
 - The parser can now be configured to disable generation of example message
-  bodies by providing an adapter option `generateMessageBody` as `false` during
-  parse.
+  bodies and message body schemas by providing an adapter option
+  `generateMessageBody` or `generateMessageBodySchema` as `false` during parse.
 
 ## 0.27.2 (2019-08-08)
 

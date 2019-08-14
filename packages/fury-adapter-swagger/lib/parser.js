@@ -24,7 +24,7 @@ const {
 // interface.
 class Parser {
   constructor({
-    namespace, source, generateSourceMap, generateMessageBody,
+    namespace, source, generateSourceMap, generateMessageBody, generateMessageBodySchema,
   }) {
     // Parser options
     this.namespace = namespace;
@@ -35,6 +35,12 @@ class Parser {
       this.generateMessageBody = true;
     } else {
       this.generateMessageBody = generateMessageBody;
+    }
+
+    if (generateMessageBodySchema === undefined) {
+      this.generateMessageBodySchema = true;
+    } else {
+      this.generateMessageBodySchema = generateMessageBodySchema;
     }
 
     // Global scheme requirements
@@ -1539,23 +1545,28 @@ class Parser {
   }
 
   pushAssets(schema, payload, contentType, pushBody) {
-    let jsonSchema;
     const referencedPathValue = this.referencedPathValue();
 
-    try {
-      const root = { definitions: this.definitions };
-      jsonSchema = convertSchema(referencedPathValue || schema, root,
-        this.referencedSwagger);
-    } catch (error) {
-      this.createAnnotation(annotations.VALIDATION_ERROR, this.path, error.message);
-      return;
+    if (this.generateMessageBody || this.generateMessageBodySchema) {
+      let jsonSchema;
+      try {
+        const root = { definitions: this.definitions };
+        jsonSchema = convertSchema(referencedPathValue || schema, root,
+          this.referencedSwagger);
+      } catch (error) {
+        this.createAnnotation(annotations.VALIDATION_ERROR, this.path, error.message);
+        return;
+      }
+
+      if (pushBody && this.generateMessageBody) {
+        bodyFromSchema(jsonSchema, payload, this, contentType);
+      }
+
+      if (this.generateMessageBodySchema) {
+        this.pushSchemaAsset(schema, jsonSchema, payload, this.path);
+      }
     }
 
-    if (pushBody && this.generateMessageBody) {
-      bodyFromSchema(jsonSchema, payload, this, contentType);
-    }
-
-    this.pushSchemaAsset(schema, jsonSchema, payload, this.path);
     this.pushDataStructureAsset(referencedPathValue || schema, payload);
   }
 
