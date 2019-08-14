@@ -1,5 +1,13 @@
 # Fury OAS3 Parser Changelog
 
+## Master
+
+### Enhancements
+
+- The parser can now be configured to disable generation of example message
+  bodies by providing an adapter option `generateMessageBody` as `false` during
+  parse.
+
 ## 0.9.1 (2019-08-08)
 
 ### Enhancements
